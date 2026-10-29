@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ed">
+  <meta name="description" content="A tiny guide to using urgent messages only when something truly needs immediate attention." data-i18n-content="meta.description">
+  <title>No Urgent by Default</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f5f4ed;
+      --ink: #1c2925;
+      --muted: #64716b;
+      --green: #245c49;
+      --lime: #d7ed85;
+      --line: #dfe2d7;
+      --white: #fffefa;
+      --rose: #f9e9e3;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: radial-gradient(ellipse at 82% 7%, rgb(215 237 133 / 28%), transparent 26rem), var(--paper);
+    }
+    a { color: inherit; }
+    .page { width: min(1120px, calc(100% - 48px)); margin: 0 auto; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 27px 0; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 750; letter-spacing: -.04em; text-decoration: none; }
+    .brand-mark { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 9px; background: var(--lime); }
+    .top-link { color: var(--muted); font-size: 13px; font-weight: 650; text-decoration: none; }
+    .hero { display: grid; min-height: 600px; grid-template-columns: 1.02fr .98fr; align-items: center; gap: 56px; padding: 48px 0 82px; }
+    .eyebrow, .section-label {
+      color: var(--green); font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase;
+    }
+    .eyebrow { display: inline-flex; align-items: center; gap: 9px; margin: 0 0 24px; }
+    .eyebrow::before { width: 8px; height: 8px; border-radius: 50%; background: #87a93c; content: ""; }
+    h1 { max-width: 580px; margin: 0; font-size: clamp(54px, 7.3vw, 88px); font-weight: 720; letter-spacing: -.085em; line-height: .98; }
+    h1 span { color: var(--green); }
+    .intro { max-width: 450px; margin: 24px 0 0; color: var(--muted); font-size: 18px; line-height: 1.65; }
+    .hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 18px; margin-top: 32px; }
+    .button { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 9px; padding: 0 19px; border: 0; border-radius: 999px; background: var(--green); color: white; font: inherit; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; transition: transform 160ms ease, background 160ms ease; }
+    .button:hover { transform: translateY(-2px); background: #194a39; }
+    .hero-note { color: var(--muted); font-size: 12px; line-height: 1.5; white-space: pre-line; }
+    .phone-wrap { position: relative; display: grid; min-height: 470px; place-items: center; }
+    .phone-wrap::before { position: absolute; width: min(400px, 90%); aspect-ratio: 1; border-radius: 50%; background: var(--lime); content: ""; }
+    .phone { position: relative; width: min(335px, 92%); overflow: hidden; border: 7px solid #25312c; border-radius: 38px; background: var(--white); box-shadow: 0 24px 70px rgb(34 49 42 / 10%); transform: rotate(2deg); }
+    .phone-top { display: flex; align-items: center; gap: 10px; padding: 19px 18px 15px; border-bottom: 1px solid #edf0e9; }
+    .avatar { display: grid; width: 36px; height: 36px; flex: 0 0 auto; place-items: center; overflow: hidden; border-radius: 50%; background: #dce8d7; color: #355a43; font-size: 12px; font-weight: 800; }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar.reply { background: #f2d4c6; color: #825139; }
+    .contact-name { font-size: 13px; font-weight: 750; }
+    .contact-status { margin-top: 3px; color: #78827b; font-size: 10px; }
+    .messages { display: grid; gap: 15px; padding: 21px 16px 19px; }
+    .message-row { display: flex; align-items: flex-end; gap: 8px; }
+    .message-row.outgoing { justify-content: flex-end; }
+    .message-row .avatar { width: 27px; height: 27px; font-size: 9px; }
+    .bubble { max-width: 218px; padding: 12px 13px; border-radius: 17px 17px 17px 5px; background: #f0f1eb; color: #39453f; font-size: 12px; line-height: 1.5; }
+    .outgoing .bubble { border-radius: 17px 17px 5px 17px; background: var(--green); color: white; }
+    .bubble.urgent { background: var(--rose); color: #53362c; }
+    .urgent-tag { display: inline-block; margin-bottom: 5px; color: #a64e37; font-size: 9px; font-weight: 850; letter-spacing: .09em; }
+    .message-time { padding: 0 0 3px; color: #89928b; font-size: 9px; white-space: nowrap; }
+    .phone-caption { position: absolute; right: 0; bottom: 10px; max-width: 200px; padding: 12px 15px; border: 1px solid var(--line); border-radius: 15px; background: var(--white); box-shadow: 0 10px 30px rgb(34 49 42 / 7%); color: var(--muted); font-size: 11px; line-height: 1.5; transform: rotate(-3deg); }
+    .phone-caption strong { color: var(--ink); }
+    .rule { display: grid; grid-template-columns: .7fr 1.3fr; gap: 50px; padding: 64px 0 72px; border-top: 1px solid var(--line); }
+    .section-label { margin: 4px 0 0; }
+    .rule h2, .examples h2, .template h2 { margin: 0; font-size: clamp(30px, 4vw, 46px); font-weight: 680; letter-spacing: -.065em; line-height: 1.08; }
+    .rule-copy { max-width: 640px; }
+    .rule-copy > p { margin: 17px 0 0; color: var(--muted); font-size: 16px; line-height: 1.7; }
+    .examples { padding: 62px 0 76px; border-top: 1px solid var(--line); }
+    .examples-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 28px; }
+    .examples-heading p { max-width: 300px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .example-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .example-card { padding: 22px; border: 1px solid var(--line); border-radius: 19px; background: rgb(255 254 250 / 75%); }
+    .example-card.good { border-color: #d2dfb6; background: #f4f7e9; }
+    .card-label { display: inline-flex; align-items: center; gap: 7px; margin: 0 0 18px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .good .card-label { color: var(--green); }
+    .example-message { display: flex; align-items: flex-start; gap: 10px; }
+    .example-message .avatar { width: 31px; height: 31px; font-size: 10px; }
+    .example-text { max-width: 400px; margin: 0; color: #35413b; font-size: 14px; line-height: 1.65; }
+    .example-note { margin: 17px 0 0 41px; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .template { display: grid; grid-template-columns: .8fr 1.2fr; align-items: center; gap: 42px; margin: 0 0 64px; padding: 35px; border-radius: 24px; background: #e8edda; }
+    .template p { margin: 13px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .copy-box { position: relative; padding: 20px; border: 1px solid #d5dcc6; border-radius: 16px; background: var(--white); }
+    .copy-text { margin: 0; padding-right: 64px; color: #35413b; font-size: 14px; line-height: 1.7; }
+    .copy-button { position: absolute; top: 14px; right: 14px; min-width: 54px; min-height: 32px; padding: 0 10px; border: 1px solid var(--line); border-radius: 999px; background: white; color: var(--green); font: inherit; font-size: 10px; font-weight: 750; cursor: pointer; }
+    .copy-button:hover { background: #f2f5e9; }
+    .copy-status { min-height: 1em; margin: 8px 0 0; color: var(--muted); font-size: 11px; }
+    footer { padding: 22px 0 30px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    .footer-top { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    footer a { text-decoration-thickness: 1px; text-underline-offset: 3px; }
+    .footer-notes { display: grid; gap: 9px; margin-top: 23px; padding-top: 19px; border-top: 1px solid var(--line); line-height: 1.6; }
+    .footer-notes p { margin: 0; }
+    .language-picker { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+    .language-picker-label { margin-right: 4px; }
+    .language-button { min-height: 34px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink); font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
+    .language-button:hover, .language-button[aria-pressed="true"] { border-color: var(--green); background: var(--green); color: white; }
+    :focus-visible { outline: 3px solid #89a949; outline-offset: 4px; }
+    @media (max-width: 760px) {
+      .page { width: min(100% - 36px, 560px); }
+      .hero { min-height: auto; grid-template-columns: 1fr; gap: 22px; padding: 54px 0 58px; }
+      h1 { max-width: 510px; font-size: clamp(55px, 14vw, 78px); }
+      .intro { font-size: 16px; }
+      .phone-wrap { min-height: 440px; }
+      .phone-caption { right: 0; bottom: 0; }
+      .rule { grid-template-columns: 1fr; gap: 17px; padding: 47px 0 52px; }
+      .examples { padding: 48px 0 55px; }
+      .examples-heading { display: block; }
+      .examples-heading p { margin-top: 13px; }
+      .example-grid { grid-template-columns: 1fr; }
+      .template { grid-template-columns: 1fr; gap: 24px; margin-bottom: 45px; padding: 25px 20px; }
+      .footer-top { align-items: flex-start; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="page topbar">
+    <a class="brand" href="#" aria-label="No Urgent by Default, home" data-i18n-aria-label="brand.label">
+      <span class="brand-mark" aria-hidden="true">!</span>
+      No Urgent by Default
+    </a>
+    <a class="top-link" href="#the-rule"><span data-i18n="nav.guide">The one-minute guide</span> <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main>
+    <section class="page hero" aria-labelledby="main-heading">
+      <div>
+        <p class="eyebrow" data-i18n="hero.eyebrow">A tiny guide to better messages</p>
+        <h1 id="main-heading"><span data-i18n="hero.titlePrefix">Urgent should mean </span><span data-i18n="hero.titleEmphasis">urgent.</span></h1>
+        <p class="intro" data-i18n="hero.intro">If it can wait for someone to finish what they’re doing, it probably doesn’t need the urgent label.</p>
+        <div class="hero-actions">
+          <a class="button" href="#the-rule"><span data-i18n="hero.action">Get the idea</span> <span aria-hidden="true">↓</span></a>
+          <span class="hero-note" data-i18n="hero.note">Less noise.<br>More meaningful urgency.</span>
+        </div>
+      </div>
+
+      <div class="phone-wrap" aria-label="Example conversation with Bob and Maria about an urgent message" data-i18n-aria-label="phone.label">
+        <div class="phone">
+          <div class="phone-top">
+            <div class="avatar"><img src="assets/bob.png" alt=""></div>
+            <div>
+              <div class="contact-name">Bob</div>
+              <div class="contact-status" data-i18n="phone.status">Usually replies in a bit</div>
+            </div>
+          </div>
+          <div class="messages">
+            <div class="message-row">
+              <div class="avatar"><img src="assets/bob.png" alt=""></div>
+              <div class="bubble urgent"><span class="urgent-tag" data-i18n="phone.urgent">⚑ URGENT</span><br><span data-i18n="phone.ask">Could you look at my slides sometime today?</span></div>
+              <span class="message-time">10:14</span>
+            </div>
+            <div class="message-row outgoing">
+              <div class="bubble" data-i18n="phone.deadline">Sure — what’s the deadline?</div>
+              <div class="avatar reply"><img src="assets/maria.png" alt=""></div>
+            </div>
+            <div class="message-row">
+              <div class="avatar"><img src="assets/bob.png" alt=""></div>
+              <div class="bubble" data-i18n="phone.friday">Friday. No rush today, just didn’t want to forget to ask.</div>
+            </div>
+            <div class="message-row outgoing">
+              <div class="bubble" data-i18n="phone.regular">Got it! A regular message works great for that.</div>
+              <div class="avatar reply"><img src="assets/maria.png" alt=""></div>
+            </div>
+          </div>
+        </div>
+        <div class="phone-caption"><strong data-i18n="phone.captionStrong">Save “urgent”</strong> <span data-i18n="phone.caption">for the messages that truly can’t wait.</span></div>
+      </div>
+    </section>
+
+    <section class="page rule" id="the-rule" aria-labelledby="rule-heading">
+      <p class="section-label" data-i18n="rule.label">The simple rule</p>
+      <div class="rule-copy">
+        <h2 id="rule-heading" data-i18n="rule.title">Urgency is about impact, not impatience.</h2>
+        <p data-i18n="rule.description">Use an urgent tag when someone needs to act now to prevent a real problem. If the task can wait until they’re available, send it normally and include when you actually need it.</p>
+      </div>
+    </section>
+
+    <section class="page examples" aria-labelledby="examples-heading">
+      <div class="examples-heading">
+        <h2 id="examples-heading" data-i18n="examples.title">Same ask. Better signal.</h2>
+        <p data-i18n="examples.description">A clear deadline helps people prioritize without making every message feel like an interruption.</p>
+      </div>
+      <div class="example-grid">
+        <article class="example-card">
+          <p class="card-label"><span aria-hidden="true">×</span> <span data-i18n="examples.badLabel">Not urgent</span></p>
+          <div class="example-message">
+            <div class="avatar"><img src="assets/bob.png" alt=""></div>
+            <p class="example-text"><strong>Bob</strong><br><span data-i18n="examples.badMessage">URGENT — Can you review the draft today? Whenever you get a chance.</span></p>
+          </div>
+          <p class="example-note" data-i18n="examples.badNote">The “urgent” label conflicts with “whenever you get a chance.”</p>
+        </article>
+        <article class="example-card good">
+          <p class="card-label"><span aria-hidden="true">✓</span> <span data-i18n="examples.goodLabel">Clear and considerate</span></p>
+          <div class="example-message">
+            <div class="avatar"><img src="assets/maria.png" alt=""></div>
+            <p class="example-text"><strong>Maria</strong><br><span data-i18n="examples.goodMessage">Could you review the draft by Thursday afternoon? I’m sending it Friday morning. No need to stop what you’re doing.</span></p>
+          </div>
+          <p class="example-note" data-i18n="examples.goodNote">A real deadline and a little context make the priority clear.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="page template" aria-labelledby="template-heading">
+      <div>
+        <h2 id="template-heading" data-i18n="template.title">If it really is urgent…</h2>
+        <p data-i18n="template.description">Say what happened, what you need, and by when. A little context helps someone act quickly.</p>
+      </div>
+      <div class="copy-box">
+        <p class="copy-text" id="urgent-template" data-i18n="template.text">URGENT: [what happened]. Please [action] by [time] because [impact]. I’ve already [steps taken].</p>
+        <button class="copy-button" type="button" id="copy-button" aria-label="Copy urgent message template" data-i18n="template.copy" data-i18n-aria-label="template.copyLabel">Copy</button>
+        <p class="copy-status" id="copy-status" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="page">
+    <div class="footer-top">
+      <span data-i18n="footer.tagline">A tiny nudge toward calmer communication.</span>
+      <a href="#main-heading" data-i18n="footer.top">Back to top ↑</a>
+    </div>
+    <div class="footer-notes">
+      <p data-i18n="footer.note">This is only half serious (kind of 😅), so don’t get mad if someone sends you this.</p>
+      <p data-i18n="footer.avatars">Avatars are illustrative; verify each image’s license before reuse.</p>
+      <p><span data-i18n="footer.inspired">Idea inspired by</span> <a href="https://nohello.net/" target="_blank" rel="noopener noreferrer">nohello.net</a>.</p>
+      <div class="language-picker" role="group" aria-label="Choose page language" data-i18n-aria-label="language.label">
+        <span class="language-picker-label" data-i18n="language.available">This page is available in:</span>
+        <button class="language-button" type="button" data-language="en" aria-pressed="true">English</button>
+        <button class="language-button" type="button" data-language="el" aria-pressed="false">Ελληνικά</button>
+        <button class="language-button" type="button" data-language="de" aria-pressed="false">Deutsch</button>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const translations = {
+      en: {
+        "page.title": "No Urgent by Default",
+        "meta.description": "A tiny guide to using urgent messages only when something truly needs immediate attention.",
+        "brand.label": "No Urgent by Default, home",
+        "nav.guide": "The one-minute guide",
+        "hero.eyebrow": "A tiny guide to better messages",
+        "hero.titlePrefix": "Urgent should mean ",
+        "hero.titleEmphasis": "urgent.",
+        "hero.intro": "If it can wait for someone to finish what they’re doing, it probably doesn’t need the urgent label.",
+        "hero.action": "Get the idea",
+        "hero.note": "Less noise.\nMore meaningful urgency.",
+        "phone.label": "Example conversation with Bob and Maria about an urgent message",
+        "phone.status": "Usually replies in a bit",
+        "phone.urgent": "⚑ URGENT",
+        "phone.ask": "Could you look at my slides sometime today?",
+        "phone.deadline": "Sure — what’s the deadline?",
+        "phone.friday": "Friday. No rush today, just didn’t want to forget to ask.",
+        "phone.regular": "Got it! A regular message works great for that.",
+        "phone.captionStrong": "Save “urgent”",
+        "phone.caption": "for the messages that truly can’t wait.",
+        "rule.label": "The simple rule",
+        "rule.title": "Urgency is about impact, not impatience.",
+        "rule.description": "Use an urgent tag when someone needs to act now to prevent a real problem. If the task can wait until they’re available, send it normally and include when you actually need it.",
+        "examples.title": "Same ask. Better signal.",
+        "examples.description": "A clear deadline helps people prioritize without making every message feel like an interruption.",
+        "examples.badLabel": "Not urgent",
+        "examples.badMessage": "URGENT — Can you review the draft today? Whenever you get a chance.",
+        "examples.badNote": "The “urgent” label conflicts with “whenever you get a chance.”",
+        "examples.goodLabel": "Clear and considerate",
+        "examples.goodMessage": "Could you review the draft by Thursday afternoon? I’m sending it Friday morning. No need to stop what you’re doing.",
+        "examples.goodNote": "A real deadline and a little context make the priority clear.",
+        "template.title": "If it really is urgent…",
+        "template.description": "Say what happened, what you need, and by when. A little context helps someone act quickly.",
+        "template.text": "URGENT: [what happened]. Please [action] by [time] because [impact]. I’ve already [steps taken].",
+        "template.copy": "Copy",
+        "template.copyLabel": "Copy urgent message template",
+        "template.copied": "Template copied to clipboard.",
+        "template.failed": "Clipboard unavailable. Select the template text to copy it.",
+        "footer.tagline": "A tiny nudge toward calmer communication.",
+        "footer.top": "Back to top ↑",
+        "footer.note": "This is only half serious (kind of 😅), so don’t get mad if someone sends you this.",
+        "footer.avatars": "Avatars are illustrative; verify each image’s license before reuse.",
+        "footer.inspired": "Idea inspired by",
+        "language.label": "Choose page language",
+        "language.available": "This page is available in:"
+      },
+      el: {
+        "page.title": "Όχι «επείγον» από προεπιλογή",
+        "meta.description": "Ένας σύντομος οδηγός για να χρησιμοποιούμε την ένδειξη «επείγον» μόνο όταν κάτι χρειάζεται πραγματικά άμεση προσοχή.",
+        "brand.label": "No Urgent by Default, αρχική σελίδα",
+        "nav.guide": "Ο οδηγός του ενός λεπτού",
+        "hero.eyebrow": "Ένας μικρός οδηγός για καλύτερα μηνύματα",
+        "hero.titlePrefix": "Το επείγον πρέπει να είναι ",
+        "hero.titleEmphasis": "πραγματικά επείγον.",
+        "hero.intro": "Αν μπορεί να περιμένει μέχρι να τελειώσει κάποιος αυτό που κάνει, μάλλον δεν χρειάζεται να χαρακτηριστεί επείγον.",
+        "hero.action": "Δες την ιδέα",
+        "hero.note": "Λιγότερος θόρυβος.\nΠιο ουσιαστικά επείγοντα μηνύματα.",
+        "phone.label": "Παράδειγμα συνομιλίας της Μαρίας με τον Μπομπ για ένα επείγον μήνυμα",
+        "phone.status": "Συνήθως απαντά σε λίγο",
+        "phone.urgent": "⚑ ΕΠΕΙΓΟΝ",
+        "phone.ask": "Μπορείς να δεις τις διαφάνειές μου κάποια στιγμή σήμερα;",
+        "phone.deadline": "Βεβαίως — ποια είναι η προθεσμία;",
+        "phone.friday": "Μέχρι την Παρασκευή. Δεν βιάζει σήμερα, απλώς δεν ήθελα να ξεχάσω να ρωτήσω.",
+        "phone.regular": "Εντάξει! Ένα κανονικό μήνυμα είναι ό,τι πρέπει.",
+        "phone.captionStrong": "Κράτα το «επείγον»",
+        "phone.caption": "για μηνύματα που πραγματικά δεν μπορούν να περιμένουν.",
+        "rule.label": "Ο απλός κανόνας",
+        "rule.title": "Το επείγον αφορά τις συνέπειες, όχι την ανυπομονησία.",
+        "rule.description": "Βάλε την ένδειξη «επείγον» όταν κάποιος πρέπει να ενεργήσει τώρα για να αποτρέψει ένα πραγματικό πρόβλημα. Αν η εργασία μπορεί να περιμένει μέχρι να είναι διαθέσιμος, στείλε ένα κανονικό μήνυμα και γράψε πότε τη χρειάζεσαι πραγματικά.",
+        "examples.title": "Το ίδιο αίτημα. Πιο ξεκάθαρο μήνυμα.",
+        "examples.description": "Μια σαφής προθεσμία βοηθά τους άλλους να βάλουν προτεραιότητες, χωρίς κάθε μήνυμα να μοιάζει με διακοπή.",
+        "examples.badLabel": "Δεν είναι επείγον",
+        "examples.badMessage": "ΕΠΕΙΓΟΝ — Μπορείς να ελέγξεις το προσχέδιο σήμερα; Όποτε βρεις χρόνο.",
+        "examples.badNote": "Η ένδειξη «επείγον» δεν ταιριάζει με το «όποτε βρεις χρόνο».",
+        "examples.goodLabel": "Σαφές και διακριτικό",
+        "examples.goodMessage": "Μπορείς να ελέγξεις το προσχέδιο μέχρι την Πέμπτη το απόγευμα; Θα το στείλω την Παρασκευή το πρωί. Δεν χρειάζεται να αφήσεις αυτό που κάνεις.",
+        "examples.goodNote": "Μια πραγματική προθεσμία και λίγο πλαίσιο ξεκαθαρίζουν την προτεραιότητα.",
+        "template.title": "Αν είναι όντως επείγον…",
+        "template.description": "Πες τι συνέβη, τι χρειάζεσαι και μέχρι πότε. Λίγο πλαίσιο βοηθά τον άλλον να δράσει γρήγορα.",
+        "template.text": "ΕΠΕΙΓΟΝ: [τι συνέβη]. Παρακαλώ [ενέργεια] μέχρι [ώρα], επειδή [συνέπεια]. Έχω ήδη [ενέργειες που έγιναν].",
+        "template.copy": "Αντιγραφή",
+        "template.copyLabel": "Αντιγραφή προτύπου επείγοντος μηνύματος",
+        "template.copied": "Το πρότυπο αντιγράφηκε.",
+        "template.failed": "Η αντιγραφή δεν είναι διαθέσιμη. Επίλεξε το κείμενο για να το αντιγράψεις.",
+        "footer.tagline": "Μια μικρή υπενθύμιση για πιο ήρεμη επικοινωνία.",
+        "footer.top": "Πάνω ↑",
+        "footer.note": "Είναι μόνο κατά το ήμισυ σοβαρό (κάπως 😅), οπότε μην παρεξηγηθείς αν σου στείλει κάποιος αυτόν τον σύνδεσμο.",
+        "footer.avatars": "Οι εικόνες προφίλ είναι ενδεικτικές· έλεγξε την άδεια χρήσης κάθε εικόνας πριν την αναδημοσίευση.",
+        "footer.inspired": "Ιδέα εμπνευσμένη από το",
+        "language.label": "Επιλογή γλώσσας σελίδας",
+        "language.available": "Η σελίδα είναι διαθέσιμη στα:"
+      },
+      de: {
+        "page.title": "Nicht standardmäßig dringend",
+        "meta.description": "Ein kurzer Leitfaden dazu, dringende Nachrichten nur dann als dringend zu kennzeichnen, wenn etwas wirklich sofortige Aufmerksamkeit braucht.",
+        "brand.label": "No Urgent by Default, Startseite",
+        "nav.guide": "Der Ein-Minuten-Leitfaden",
+        "hero.eyebrow": "Ein kleiner Leitfaden für bessere Nachrichten",
+        "hero.titlePrefix": "Dringend sollte wirklich ",
+        "hero.titleEmphasis": "dringend heißen.",
+        "hero.intro": "Wenn es warten kann, bis jemand seine aktuelle Aufgabe beendet hat, braucht die Nachricht wahrscheinlich keine Dringlichkeitsmarkierung.",
+        "hero.action": "Zur Idee",
+        "hero.note": "Weniger Lärm.\nWirklich wichtige Dringlichkeit.",
+        "phone.label": "Beispielgespräch zwischen Bob und Maria über eine dringende Nachricht",
+        "phone.status": "Antwortet meistens bald",
+        "phone.urgent": "⚑ DRINGEND",
+        "phone.ask": "Kannst du dir meine Folien irgendwann heute ansehen?",
+        "phone.deadline": "Klar — bis wann brauchst du es?",
+        "phone.friday": "Bis Freitag. Heute eilt es nicht, ich wollte nur nicht vergessen zu fragen.",
+        "phone.regular": "Alles klar! Dafür reicht eine normale Nachricht völlig aus.",
+        "phone.captionStrong": "„Dringend“ nur",
+        "phone.caption": "für Nachrichten verwenden, die wirklich nicht warten können.",
+        "rule.label": "Die einfache Regel",
+        "rule.title": "Dringlichkeit hängt von den Folgen ab, nicht von Ungeduld.",
+        "rule.description": "Markiere eine Nachricht als dringend, wenn jemand jetzt handeln muss, um ein echtes Problem zu verhindern. Kann die Aufgabe warten, bis die Person Zeit hat, schreib normal und nenne den tatsächlichen Termin.",
+        "examples.title": "Gleiche Bitte. Besseres Signal.",
+        "examples.description": "Eine klare Frist hilft bei der Priorisierung, ohne dass jede Nachricht wie eine Unterbrechung wirkt.",
+        "examples.badLabel": "Nicht dringend",
+        "examples.badMessage": "DRINGEND — Kannst du den Entwurf heute prüfen? Wenn du irgendwann Zeit hast.",
+        "examples.badNote": "Die Markierung „dringend“ passt nicht zu „wenn du irgendwann Zeit hast“.",
+        "examples.goodLabel": "Klar und rücksichtsvoll",
+        "examples.goodMessage": "Kannst du den Entwurf bis Donnerstag Nachmittag prüfen? Ich schicke ihn Freitagmorgen ab. Du musst dafür nichts stehen und liegen lassen.",
+        "examples.goodNote": "Eine echte Frist und etwas Kontext machen die Priorität deutlich.",
+        "template.title": "Wenn es wirklich dringend ist …",
+        "template.description": "Schreib, was passiert ist, was du brauchst und bis wann. Etwas Kontext hilft der anderen Person, schnell zu handeln.",
+        "template.text": "DRINGEND: [was passiert ist]. Bitte [Aktion] bis [Uhrzeit], weil [Auswirkung]. Ich habe bereits [unternommene Schritte].",
+        "template.copy": "Kopieren",
+        "template.copyLabel": "Vorlage für eine dringende Nachricht kopieren",
+        "template.copied": "Vorlage in die Zwischenablage kopiert.",
+        "template.failed": "Zwischenablage nicht verfügbar. Markiere den Vorlagentext und kopiere ihn.",
+        "footer.tagline": "Ein kleiner Anstoß für entspanntere Kommunikation.",
+        "footer.top": "Nach oben ↑",
+        "footer.note": "Das ist nur halb ernst gemeint (na ja 😅) — sei also nicht sauer, wenn dir jemand das hier schickt.",
+        "footer.avatars": "Die Profilbilder dienen als Beispiele. Bitte prüfe vor einer Weiterverwendung die jeweilige Bildlizenz.",
+        "footer.inspired": "Idee inspiriert von",
+        "language.label": "Seitensprache auswählen",
+        "language.available": "Diese Seite ist verfügbar auf:"
+      }
+    };
+
+    const copyButton = document.querySelector("#copy-button");
+    const messageTemplate = document.querySelector("#urgent-template");
+    const copyStatus = document.querySelector("#copy-status");
+    const languageButtons = document.querySelectorAll("[data-language]");
+    function setLanguage(language) {
+      const dictionary = translations[language];
+      if (!dictionary) return;
+
+      document.documentElement.lang = language;
+      document.title = dictionary["page.title"];
+      document.querySelectorAll("[data-i18n]").forEach((element) => {
+        element.textContent = dictionary[element.dataset.i18n];
+      });
+      document.querySelectorAll("[data-i18n-aria-label]").forEach((element) => {
+        element.setAttribute("aria-label", dictionary[element.dataset.i18nAriaLabel]);
+      });
+      document.querySelectorAll("[data-i18n-content]").forEach((element) => {
+        element.setAttribute("content", dictionary[element.dataset.i18nContent]);
+      });
+      languageButtons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.language === language));
+      });
+      copyStatus.textContent = "";
+    }
+
+    languageButtons.forEach((button) => {
+      button.addEventListener("click", () => setLanguage(button.dataset.language));
+    });
+
+    copyButton.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(messageTemplate.textContent);
+        copyStatus.textContent = translations[document.documentElement.lang]["template.copied"];
+      } catch {
+        copyStatus.textContent = translations[document.documentElement.lang]["template.failed"];
+      }
+    });
+  </script>
+</body>
+</html>
